@@ -1,0 +1,36 @@
+name: GHCR cleanup
+
+# mcp-base doesn't fit the fleet's usual sha-<full40> cleanup shape (see
+# fernau/common/.github/workflows/ghcr-cleanup.yml): publish.yml pushes a
+# single moving tag (26.04) rather than a per-build sha-* tag, so there's
+# nothing to match against `delete-tags: 'sha-*'`. Every rebuild instead
+# re-points 26.04 at a new digest and leaves the previous digest behind as
+# an untagged, orphaned package version — this prunes those directly
+# instead of reusing the sha-tag workflow.
+#
+# Same pinned action as the rest of the fleet, for the same reason: it's
+# manifest-aware and won't delete a still-referenced platform/attestation
+# child of the current 26.04 index. See docs/history in fernau/search-mcp
+# for the incident (snok's default tag-selection silently 404'd v0.1.20).
+
+on:
+  schedule:
+    # Weekly, Sunday 06:00 UTC — matches the rest of the fleet's cadence.
+    - cron: '0 6 * * 0'
+  workflow_dispatch:
+
+jobs:
+  prune-untagged:
+    name: Prune untagged versions older than 7 days
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - name: Delete untagged images
+        uses: dataaxiom/ghcr-cleanup-action@v1.2.2
+        with:
+          token: ${{ github.token }}
+          packages: mcp-base
+          delete-untagged: true
+          older-than: '7 days'
+          validate: true
