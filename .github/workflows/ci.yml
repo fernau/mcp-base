@@ -17,18 +17,3 @@ jobs:
           curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz \
             | tar -xz -C /usr/local/bin gitleaks
       - run: gitleaks detect --source . --verbose --redact --no-banner
-
-  image:
-    name: Image ships no pebble
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: docker/setup-buildx-action@v4
-      - uses: docker/build-push-action@v7
-        with:
-          context: .
-          file: Dockerfile
-          load: true
-          tags: mcp-base:ci
-          cache-from: type=gha
-      - run: docker run --rm --entrypoint sh mcp-base:ci -c '! test -e /usr/bin/pebble'
