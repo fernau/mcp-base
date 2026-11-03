@@ -12,4 +12,6 @@ RUN echo 'Acquire::Retries "5";' > /etc/apt/apt.conf.d/80-retries && \
     adduser \
     && rm -rf /var/lib/apt/lists/*
 
+RUN rm -f /usr/bin/pebble
+
 RUN adduser --system --group --home /home/mcp --uid 500 mcp
